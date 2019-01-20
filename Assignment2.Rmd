@@ -1,0 +1,57 @@
+---
+title: "Starbucks in Dubai on Leaflet"
+author: "Ryan D"
+date: "2019-01-18"
+output: html_document
+self_contained: no
+---
+    
+# Starbucks location visualization
+# This is adapted from https://github.com/aannasw/starbucks-leaflet.     
+### Data source: https://opendata.socrata.com/Business/All-Starbucks-Locations-in-the-World/xy4y-c4mk/data
+
+'`r format(Sys.Date(), "%B %d, %Y")`'
+    
+### Load up packages
+    
+```{r, results='hide'}
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(leaflet)
+library(tm)
+library(SnowballC)
+```
+
+### Read in data
+
+```{r}
+setwd("~/R/DSS/DPP/Week2")
+sbux <- read.csv("All_Starbucks_Locations_in_the_World.csv", 
+                 stringsAsFactors = FALSE)
+```
+
+### Feature selection and formatting
+
+```{r}
+glimpse(sbux)
+
+# Create Ownership Type factor
+table(sbux$Ownership.Type)
+sbux$Ownership.Type <- as.factor(sbux$Ownership.Type)
+```
+
+### Mapping with Leaflet
+
+```{r}
+sbux_cluster <- leaflet() %>% 
+    addTiles() %>% 
+    setView(55.23, 25.10, zoom = 10) %>%
+    addCircleMarkers(data = sbux, lng = ~ Longitude, lat = ~ Latitude, 
+                     radius = 3, 
+                     color = ~ ifelse(Ownership.Type == 'Licensed', 
+                                      'seagreen', 'purple'),
+                     popup = ~ paste(Name, " - ", Ownership.Type, " (", ")", sep = ""), 
+                     clusterOptions = markerClusterOptions())
+sbux_cluster
+```
